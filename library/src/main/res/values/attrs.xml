@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="NumberPicker">
+        <attr name="number" format="integer" />
+    </declare-styleable>
+
+
+    <declare-styleable name="InputField">
+        <attr name="titleText" format="string" />
+        <attr name="titleTextColor" format="color" />
+        <attr name="titleTextSize" format="dimension" />
+        <attr name="titleAreaWidth" format="dimension" />
+        <attr name="startDrawable" format="reference" />
+        <attr name="endDrawable" format="reference" />
+        <attr name="clearDrawable" format="reference" />
+        <attr name="wrongDrawable" format="reference" />
+        <attr name="titleToInputSpace" format="dimension" />
+        <attr name="validateNotNull" format="boolean" />
+        <attr name="nullErrorMessage" format="string" />
+        <attr name="validateRegexString" format="string" />
+        <attr name="validateErrorMessage" format="string" />
+        <attr name="rightDrawableToDrawableSpace" format="dimension" />
+        <attr name="android:background" />
+        <attr name="android:padding" />
+
+        <attr name="rightDrawableType" format="enum">
+            <enum name="showClearAndErrorTag" value="1" />
+            <enum name="showErrorTag" value="2" />
+            <enum name="showClearTag" value="3" />
+            <enum name="none" value="4" />
+            <enum name="showClearAndErrorAndBubble" value="5" />
+            <enum name="showErrorAndBubble" value="6" />
+        </attr>
+
+        <attr name="titlePosition" format="enum">
+            <enum name="topLeft" value="1" />
+            <enum name="topCenter" value="2" />
+            <enum name="topRight" value="3" />
+            <enum name="centerLeft" value="4" />
+            <enum name="center" value="5" />
+            <enum name="centerRight" value="6" />
+            <enum name="bottomLeft" value="7" />
+            <enum name="bottomCenter" value="8" />
+            <enum name="bottomRight" value="9" />
+        </attr>
+
+        <attr name="titleType" format="enum">
+            <enum name="innerLeft" value="1" />
+            <enum name="outsideLeft" value="2" />
+            <enum name="outsideTop" value="3" />
+            <enum name="innerTop" value="4" />
+        </attr>
+
+    </declare-styleable>
+
+    <declare-styleable name="FormLayout">
+        <attr name="inputFieldBackground" format="reference" />
+        <attr name="inputFieldPadding" format="dimension" />
+    </declare-styleable>
+
+</resources>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="新增门店" />
+
+    <com.github.lazydeer.formlayout.FormLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        app:inputFieldBackground="@drawable/btn_white_round_bg_pressed"
+        app:startDrawable="@drawable/wrong_tag"
+        app:titleAreaWidth="90dp"
+        app:titlePosition="topRight"
+        app:titleTextColor="@color/gray"
+        app:titleTextSize="19sp"
+        app:titleType="outsideLeft"
+        app:validateNotNull="true">
+
+        <com.github.lazydeer.formlayout.fields.InputField
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="1233333"
+            android:text="hello123"
+            app:titleText="手机号:"
+            app:validateErrorMessage="请输入正确的手机号"
+            app:validateRegexString="^1(3[0-9]|5[0-35-9]|8[025-9])\\d{8}$" />
+
+
+        <com.github.lazydeer.formlayout.fields.InputField
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/white"
+            android:focusable="false"
+            android:hint="请输入用户名"
+            app:titleText="昵称"
+            app:titleToInputSpace="15dp" />
+
+
+        <com.github.lazydeer.formlayout.fields.InputField
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="hhhhhh"
+            app:endDrawable="@drawable/wrong_tag"
+            app:titleText="身份证:" />
+
+
+        <com.github.lazydeer.formlayout.fields.InputField
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="hhhhhh"
+            app:titleText="学历:" />
+    </com.github.lazydeer.formlayout.FormLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/passwordWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp">
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword" />
+
+    </android.support.design.widget.TextInputLayout>
+</LinearLayout>

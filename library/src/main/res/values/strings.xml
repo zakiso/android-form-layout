@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Formlayout</string>
+    <string name="null_error_string">field must not null!</string>
+    <string name="fill_error_string">field has wrong,please check again!</string>
+</resources>
