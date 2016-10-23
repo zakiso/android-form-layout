@@ -5,9 +5,15 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import com.github.lazydeer.formlayout.fields.AttributeParser;
+import com.github.lazydeer.formlayout.fields.FieldValidateError;
+import com.github.lazydeer.formlayout.fields.InputField;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -54,4 +60,20 @@ public class FormLayout extends LinearLayout {
     public AttributeParser getParser() {
         return parser;
     }
+
+    public List<FieldValidateError> validateInputFields() {
+        List<FieldValidateError> list = new ArrayList();
+        for (int i = 0; i < getChildCount(); i++) {
+            View v = getChildAt(i);
+            if (v instanceof InputField) {
+                FieldValidateError e = ((InputField) v).validateEditText();
+                if (!IsEmpty.object(e)) {
+                    list.add(e);
+                }
+            }
+        }
+        return list;
+    }
+
+    ;
 }

@@ -8,12 +8,10 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.text.Layout;
-import android.text.StaticLayout;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,7 +20,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.github.lazydeer.formlayout.FormLayout;
-import com.github.lazydeer.formlayout.FormUtils;
 import com.github.lazydeer.formlayout.IsEmpty;
 import com.github.lazydeer.formlayout.R;
 
@@ -48,6 +45,9 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
 
     //只显示一行文字的高度
     private float oneLineHeight;
+
+    private EndDrawableClickListener endDrawableClickListener;
+    private ValidateListener validateListener;
 
     public InputField(Context context) {
         this(context, null);
@@ -217,8 +217,10 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             int startY = 0;
             switch (parser.getTitlePosition()) {
                 case TitlePosition.TOP_LEFT:
-                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
-                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    if (parser.getTitleDrawable() != null
+                            && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable())
+                                + parser.getTitleToTitleDrawableSpace();
                     }
                     break;
                 case TitlePosition.TOP_CENTER:
@@ -228,8 +230,10 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     x = parser.getTitleWidth() - textWidth - parser.getPadding();
                     break;
                 case TitlePosition.CENTER_LEFT:
-                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
-                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition()
+                            == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable())
+                                + parser.getTitleToTitleDrawableSpace();
                     }
                     height = getHeight();
                     break;
@@ -242,8 +246,10 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     x = parser.getTitleWidth() - textWidth - parser.getPadding();
                     break;
                 case TitlePosition.BOTTOM_LEFT:
-                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
-                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    if (parser.getTitleDrawable() != null
+                            && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable())
+                                + parser.getTitleToTitleDrawableSpace();
                     }
                     startY = (int) (getHeight() - oneLineHeight);
                     break;
@@ -513,12 +519,15 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
         Log.d("focus change:", this.haveFocus + "");
     }
 
-    public void validateEditText() {
+    public FieldValidateError validateEditText() {
+        FieldValidateError error = null;
         //验证是否唯恐
         if (parser.isNotNull()) {
             if (IsEmpty.string(getText().toString())) {
                 validateFailed = true;
                 validateFailedMessage = parser.getNotNullErrorMessage();
+                error = new FieldValidateError(this, validateFailedMessage,
+                        FieldValidateError.ErrorType.NULL_ERROR);
             }
         }
         if (parser.getValidateRegexString() != null && !validateFailed) {
@@ -529,9 +538,15 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             } else {
                 validateFailed = true;
                 validateFailedMessage = parser.getValidateErrorMessage();
+                error = new FieldValidateError(this, validateFailedMessage,
+                        FieldValidateError.ErrorType.REGEX_VALIDATE_ERROR);
             }
         }
+        if (validateListener != null) {
+            validateListener.onValidated(error);
+        }
         invalidate();
+        return error;
     }
 
     /**
@@ -539,6 +554,12 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (parser.getEndDrawable() != null) {
+            if (parser.getEndDrawable().getBounds().contains((int) event.getX(), (int) event.getY())
+                    && this.endDrawableClickListener != null) {
+                endDrawableClickListener.onClick(this);
+            }
+        }
         if (parser.getRightDrawableType() != RightDrawable.NONE) {
             if (getText().toString().length() > 0 && event.getAction() == MotionEvent.ACTION_UP) {
                 if (parser.getClearDrawable().getBounds().contains((int) event.getX(), (int) event.getY()) && isFocused()) {
@@ -592,6 +613,33 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     public interface TitleTagDrawablePosition {
         int LEFT_TOP = 1;
         int RIGHT_TOP = 2;
+    }
+
+    public interface EndDrawableClickListener {
+        void onClick(InputField field);
+    }
+
+    /**
+     * 如果验证失败返回FieldValidateError对象验证成功返回空对象
+     */
+    public interface ValidateListener {
+        void onValidated(@Nullable FieldValidateError error);
+    }
+
+    public EndDrawableClickListener getEndDrawableClickListener() {
+        return endDrawableClickListener;
+    }
+
+    public void setEndDrawableClickListener(EndDrawableClickListener endDrawableClickListener) {
+        this.endDrawableClickListener = endDrawableClickListener;
+    }
+
+    public ValidateListener getValidateListener() {
+        return validateListener;
+    }
+
+    public void setValidateListener(ValidateListener validateListener) {
+        this.validateListener = validateListener;
     }
 }
 
