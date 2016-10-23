@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="NumberPicker">
-        <attr name="number" format="integer" />
-    </declare-styleable>
-
 
     <declare-styleable name="InputField">
         <attr name="titleText" format="string" />
@@ -15,21 +11,24 @@
         <attr name="clearDrawable" format="reference" />
         <attr name="wrongDrawable" format="reference" />
         <attr name="titleToInputSpace" format="dimension" />
+
+        <attr name="rightDrawableToDrawableSpace" format="dimension" />
+        <attr name="titleToTitleDrawableSpace" format="dimension" />
+        <attr name="titleToTitleTagDrawableSpace" format="dimension" />
+
+        <attr name="android:background" />
+        <attr name="android:padding" />
+
         <attr name="validateNotNull" format="boolean" />
         <attr name="nullErrorMessage" format="string" />
         <attr name="validateRegexString" format="string" />
         <attr name="validateErrorMessage" format="string" />
-        <attr name="rightDrawableToDrawableSpace" format="dimension" />
-        <attr name="android:background" />
-        <attr name="android:padding" />
 
         <attr name="rightDrawableType" format="enum">
             <enum name="showClearAndErrorTag" value="1" />
             <enum name="showErrorTag" value="2" />
             <enum name="showClearTag" value="3" />
             <enum name="none" value="4" />
-            <enum name="showClearAndErrorAndBubble" value="5" />
-            <enum name="showErrorAndBubble" value="6" />
         </attr>
 
         <attr name="titlePosition" format="enum">
@@ -49,6 +48,18 @@
             <enum name="outsideLeft" value="2" />
             <enum name="outsideTop" value="3" />
             <enum name="innerTop" value="4" />
+        </attr>
+
+        <attr name="titleDrawable" format="reference" />
+        <attr name="titleTagDrawable" format="reference" />
+        <attr name="titleDrawablePosition" format="enum">
+            <enum name="left" value="1" />
+            <enum name="right" value="2" />
+        </attr>
+
+        <attr name="titleTagDrawablePosition" format="enum">
+            <enum name="leftTop" value="1" />
+            <enum name="rightTop" value="2" />
         </attr>
 
     </declare-styleable>

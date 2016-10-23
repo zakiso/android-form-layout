@@ -19,6 +19,9 @@ public class DefaultValue {
     //默认title位置和类型
     public int titleType = InputField.TitleType.OUTSIDE_LEFT;
     public int titlePosition = InputField.TitlePosition.TOP_LEFT;
+    //title图标和小标的位置
+    public int titleDrawablePosition = InputField.TitleDrawablePosition.LEFT;
+    public int titleTagDrawablePosition = InputField.TitleTagDrawablePosition.LEFT_TOP;
     //默认右边显示的图标
     public int rightDrawableType = InputField.RightDrawable.CLEAR_AND_ERROR;
     //title的宽度
@@ -29,6 +32,8 @@ public class DefaultValue {
     public int padding = 10;
     public int titleToInputSpace = 5;
     public int rightDrawableToDrawableSpace = 5;
+    public int titleToTitleDrawableSpace = 3;
+    public int titleToTitleTagDrawableSpace = 2;
 
     //校验相关字段
     public boolean notNull = false;
@@ -47,8 +52,7 @@ public class DefaultValue {
 
     public Drawable titleDrawable;
     public Drawable titleTagDrawable;
-    public int titleDrawablePosition = InputField.TitleDrawablePosition.LEFT;
-    public int titleTagDrawablePosition = InputField.TitleTagDrawablePosition.LEFT_TOP;
+
 
     public DefaultValue(Context context) {
         this.context = context;
@@ -61,7 +65,9 @@ public class DefaultValue {
         rightDrawableToDrawableSpace = FormUtils.dip2px(context, rightDrawableToDrawableSpace);
         notNullErrorMessage = context.getString(R.string.null_error_string);
         validateErrorMessage = context.getString(R.string.fill_error_string);
-    }
 
+        titleToTitleDrawableSpace = FormUtils.dip2px(context, titleToTitleDrawableSpace);
+        titleToTitleTagDrawableSpace = FormUtils.dip2px(context, titleToTitleTagDrawableSpace);
+    }
 
 }

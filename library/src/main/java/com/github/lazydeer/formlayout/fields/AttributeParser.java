@@ -44,6 +44,14 @@ public class AttributeParser {
     private String validateErrorMessage;
 
 
+    public Drawable titleDrawable;
+    public Drawable titleTagDrawable;
+    public int titleDrawablePosition;
+    public int titleTagDrawablePosition;
+
+    public int titleToTitleDrawableSpace;
+    public int titleToTitleTagDrawableSpace;
+
     public AttributeParser(Context context) {
         this.context = context;
     }
@@ -60,10 +68,24 @@ public class AttributeParser {
                 R.styleable.InputField_titleToInputSpace, -1);
         this.rightDrawableToDrawableSpace = (int) array.getDimension(
                 R.styleable.InputField_rightDrawableToDrawableSpace, -1);
+
+        this.titleDrawablePosition = array.getInt(R.styleable.InputField_titleDrawablePosition, -1);
+        this.titleTagDrawablePosition = array.getInt(
+                R.styleable.InputField_titleTagDrawablePosition, -1);
+
+        this.titleToTitleDrawableSpace = (int) array.getDimension(
+                R.styleable.InputField_titleToTitleDrawableSpace, -1);
+
+        this.titleToTitleTagDrawableSpace = (int) array.getDimension(
+                R.styleable.InputField_titleToTitleTagDrawableSpace, -1);
+
+
         this.notNull = array.getBoolean(R.styleable.InputField_validateNotNull, false);
         this.notNullErrorMessage = array.getString(R.styleable.InputField_nullErrorMessage);
         this.validateRegexString = array.getString(R.styleable.InputField_validateRegexString);
         this.validateErrorMessage = array.getString(R.styleable.InputField_validateErrorMessage);
+
+
     }
 
     //初始化输入框中需要用到的小图标
@@ -72,6 +94,8 @@ public class AttributeParser {
         int startDrawableId = array.getResourceId(R.styleable.InputField_startDrawable, -1);
         int clearDrawableId = array.getResourceId(R.styleable.InputField_clearDrawable, -1);
         int wrongDrawableId = array.getResourceId(R.styleable.InputField_wrongDrawable, -1);
+        int titleDrawableId = array.getResourceId(R.styleable.InputField_titleDrawable, -1);
+        int titleTagDrawableId = array.getResourceId(R.styleable.InputField_titleTagDrawable, -1);
         if (endDrawableId != -1) {
             this.endDrawable = ContextCompat.getDrawable(context, endDrawableId);
         }
@@ -83,6 +107,12 @@ public class AttributeParser {
         }
         if (wrongDrawableId != -1) {
             this.wrongDrawable = ContextCompat.getDrawable(context, wrongDrawableId);
+        }
+        if (titleDrawableId != -1) {
+            this.titleDrawable = ContextCompat.getDrawable(context, titleDrawableId);
+        }
+        if (titleTagDrawableId != -1) {
+            this.titleTagDrawable = ContextCompat.getDrawable(context, titleTagDrawableId);
         }
     }
 
@@ -228,5 +258,45 @@ public class AttributeParser {
 
     public void setValidateErrorMessage(String validateErrorMessage) {
         this.validateErrorMessage = validateErrorMessage;
+    }
+
+    public Drawable getTitleDrawable() {
+        return titleDrawable;
+    }
+
+    public void setTitleDrawable(Drawable titleDrawable) {
+        this.titleDrawable = titleDrawable;
+    }
+
+    public Drawable getTitleTagDrawable() {
+        return titleTagDrawable;
+    }
+
+    public void setTitleTagDrawable(Drawable titleTagDrawable) {
+        this.titleTagDrawable = titleTagDrawable;
+    }
+
+    public int getTitleDrawablePosition() {
+        return titleDrawablePosition;
+    }
+
+    public void setTitleDrawablePosition(int titleDrawablePosition) {
+        this.titleDrawablePosition = titleDrawablePosition;
+    }
+
+    public int getTitleTagDrawablePosition() {
+        return titleTagDrawablePosition;
+    }
+
+    public void setTitleTagDrawablePosition(int titleTagDrawablePosition) {
+        this.titleTagDrawablePosition = titleTagDrawablePosition;
+    }
+
+    public int getTitleToTitleDrawableSpace() {
+        return titleToTitleDrawableSpace;
+    }
+
+    public int getTitleToTitleTagDrawableSpace() {
+        return titleToTitleTagDrawableSpace;
     }
 }

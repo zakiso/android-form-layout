@@ -9,8 +9,11 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
+import android.text.Layout;
+import android.text.StaticLayout;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +22,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.github.lazydeer.formlayout.FormLayout;
+import com.github.lazydeer.formlayout.FormUtils;
 import com.github.lazydeer.formlayout.IsEmpty;
 import com.github.lazydeer.formlayout.R;
 
@@ -42,6 +46,9 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     private boolean validateFailed;
     private String validateFailedMessage;
 
+    //只显示一行文字的高度
+    private float oneLineHeight;
+
     public InputField(Context context) {
         this(context, null);
     }
@@ -58,6 +65,12 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
         registerListener();
     }
 
+    /**
+     * 初始化属性  属性分为2部分，有公共属性，就是FormLayout和InputField都可以使用都属性，在FormLayout 中使用
+     * 该属性，在FormLayout中所有为InputField的子view都会使用该属性，公共属性定义在AttributeParser中
+     *
+     * @param attrs
+     */
     private void init(AttributeSet attrs) {
         defaultValue = new DefaultValue(getContext());
         parser = new AttributeParser(getContext());
@@ -80,6 +93,9 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
 
     }
 
+    /**
+     * 注册监听器
+     */
     private void registerListener() {
         setOnFocusChangeListener(this);
     }
@@ -96,6 +112,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             getConfig(null);
         }
         initView();
+        this.oneLineHeight = getOneLineHeight();
     }
 
 
@@ -176,18 +193,16 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
 
     }
 
-    //画左边的title
+    //画左边的title 和他相关的图标
     private void drawTitle(Canvas canvas) {
         if (IsEmpty.string(titleText)) {
             return;
         }
+
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(this.parser.getTitleColor());
         paint.setStrokeWidth(3);
         paint.setTextSize(this.parser.getTitleSize());
-        Paint.FontMetricsInt fontMetrics = paint.getFontMetricsInt();
-        Rect targetRect = new Rect(0, 0, this.parser.getTitleWidth(), getHeight());
-
 
         int textWidth = (int) paint.measureText(titleText);
         int x = parser.getPadding();
@@ -198,8 +213,13 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                 x = getWidth() - textWidth - parser.getPadding();
             }
         } else {
+            float height = oneLineHeight;
+            int startY = 0;
             switch (parser.getTitlePosition()) {
                 case TitlePosition.TOP_LEFT:
+                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    }
                     break;
                 case TitlePosition.TOP_CENTER:
                     x = (parser.getTitleWidth() - textWidth) / 2;
@@ -208,32 +228,85 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     x = parser.getTitleWidth() - textWidth - parser.getPadding();
                     break;
                 case TitlePosition.CENTER_LEFT:
-                    y = (targetRect.bottom - fontMetrics.bottom) / 2;
+                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    }
+                    height = getHeight();
                     break;
                 case TitlePosition.CENTER:
+                    height = getHeight();
                     x = (parser.getTitleWidth() - textWidth) / 2;
-                    y = (targetRect.bottom - fontMetrics.bottom) / 2;
                     break;
                 case TitlePosition.CENTER_RIGHT:
+                    height = getHeight();
                     x = parser.getTitleWidth() - textWidth - parser.getPadding();
-                    y = (targetRect.bottom - fontMetrics.bottom) / 2;
                     break;
                 case TitlePosition.BOTTOM_LEFT:
-                    y = getHeight() - parser.getPadding() - parser.getTitleSize();
+                    if (parser.getTitleDrawable() != null && parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                        x = parser.getPadding() + getBitmapDrawableWidth(parser.getTitleDrawable()) + parser.getTitleToTitleDrawableSpace();
+                    }
+                    startY = (int) (getHeight() - oneLineHeight);
                     break;
                 case TitlePosition.BOTTOM_CENTER:
+                    startY = (int) (getHeight() - oneLineHeight);
                     x = (parser.getTitleWidth() - textWidth) / 2;
-                    y = getHeight() - parser.getPadding() - parser.getTitleSize();
                     break;
                 case TitlePosition.BOTTOM__RIGHT:
+                    startY = (int) (getHeight() - oneLineHeight);
                     x = parser.getTitleWidth() - textWidth - parser.getPadding();
-                    y = getHeight() - parser.getPadding() - parser.getTitleSize();
                     break;
-
             }
+            y = (int) (startY + (height / 2) - (paint.descent() + paint.ascent()) / 2);
         }
-        canvas.drawText(titleText, x, y, paint);
+        Drawable titleDrawable = parser.getTitleDrawable();
+        if (titleDrawable != null) {
+            int titleDrawableWidth = getBitmapDrawableWidth(titleDrawable);
+            int titleDrawableHeight = getBitmapDrawableHeight(titleDrawable);
+            if (parser.getTitleDrawablePosition() == TitleDrawablePosition.LEFT) {
+                canvas.drawText(titleText, x, y, paint);
+                int drawableStart = x - titleDrawableWidth - parser.getTitleToTitleDrawableSpace();
+                int drawableTop = (y - (parser.getTitleSize() / 3)) - (titleDrawableHeight / 2);
+                titleDrawable.setBounds(
+                        drawableStart, drawableTop, drawableStart + titleDrawableWidth,
+                        drawableTop + titleDrawableHeight);
+                titleDrawable.draw(canvas);
+            } else {
+                x = x - titleDrawableWidth - parser.getTitleToTitleDrawableSpace();
+                canvas.drawText(titleText, x, y, paint);
 
+                int drawableStart = x + textWidth + parser.getTitleToTitleDrawableSpace();
+                int drawableTop = (y - (parser.getTitleSize() / 3)) - (titleDrawableHeight / 2);
+                titleDrawable.setBounds(
+                        drawableStart, drawableTop, drawableStart + titleDrawableWidth,
+                        drawableTop + titleDrawableHeight);
+                titleDrawable.draw(canvas);
+            }
+        } else {
+            canvas.drawText(titleText, x, y, paint);
+        }
+
+        Drawable titleTagDrawable = parser.getTitleTagDrawable();
+        if (titleTagDrawable != null) {
+            int titleTagDrawableWidth = getBitmapDrawableWidth(titleTagDrawable);
+            int titleTagDrawableHeight = getBitmapDrawableHeight(titleTagDrawable);
+            int titleTagX;
+            int titleTagTop = y - parser.getTitleSize() - (parser.getTitleToTitleTagDrawableSpace() / 2);
+            if (parser.getTitleTagDrawablePosition() == TitleTagDrawablePosition.LEFT_TOP) {
+                titleTagX = x - parser.getTitleToTitleTagDrawableSpace();
+            } else {
+                titleTagX = x + textWidth + parser.getTitleToTitleTagDrawableSpace();
+            }
+            titleTagDrawable.setBounds(titleTagX, titleTagTop, titleTagX + titleTagDrawableWidth,
+                    titleTagTop + titleTagDrawableHeight);
+            titleTagDrawable.draw(canvas);
+        }
+
+    }
+
+    public float getOneLineHeight() {
+        float height = (this.getPaint().getFontMetrics().bottom - this.getPaint().getFontMetrics().top)
+                + parser.getPadding() * 2;
+        return height;
     }
 
     private void drawLeftDrawable(Canvas canvas) {
@@ -283,38 +356,57 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     } else {
                         drawable = parser.getClearDrawable();
                     }
-                    int width = getBitmapDrawableWidth(drawable);
-                    int height = getBitmapDrawableHeight(drawable);
-                    int start;
-
-                    if (parser.getEndDrawable() == null) {
-                        start = getWidth() - width - parser.getPadding();
-                    } else {
-                        start = getWidth() - parser.getPadding() -
-                                parser.getRightDrawableToDrawableSpace() - width
-                                - getBitmapDrawableWidth(parser.getEndDrawable());
-                    }
-                    int top = (getHeight() - height) / 2;
-                    if (parser.getTitleType() == TitleType.INNER_TOP
-                            || parser.getTitleType() == TitleType.OUTSIDE_TOP) {
-                        top = (getHeight() - inputHeight) + ((inputHeight - height) / 2);
-                    }
-                    drawable.setBounds(start, top, start + width,
-                            top + height);
-                    drawable.draw(canvas);
+                    drawRightActionDrawable(canvas, drawable);
                 }
                 break;
-            case RightDrawable.CLEAR_ONLY:
-                break;
-            case RightDrawable.ERROR_ONLY:
-                break;
+            case RightDrawable.CLEAR_ONLY: {
+                if (isFocused() && getText().toString().length() > 0) {
+                    Drawable drawable = parser.getClearDrawable();
+                    drawRightActionDrawable(canvas, drawable);
+                }
+            }
+            break;
+            case RightDrawable.ERROR_ONLY: {
+                if (!isFocused() && validateFailed) {
+                    Drawable drawable = parser.getWrongDrawable();
+                    drawRightActionDrawable(canvas, drawable);
+                }
+            }
+            break;
             case RightDrawable.NONE:
                 break;
 
         }
     }
 
+    private void drawRightActionDrawable(Canvas canvas, Drawable drawable) {
+
+        int width = getBitmapDrawableWidth(drawable);
+        int height = getBitmapDrawableHeight(drawable);
+        int start;
+
+        if (parser.getEndDrawable() == null) {
+            start = getWidth() - width - parser.getPadding();
+        } else {
+            start = getWidth() - parser.getPadding() -
+                    parser.getRightDrawableToDrawableSpace() - width
+                    - getBitmapDrawableWidth(parser.getEndDrawable());
+        }
+        int top = (getHeight() - height) / 2;
+        if (parser.getTitleType() == TitleType.INNER_TOP
+                || parser.getTitleType() == TitleType.OUTSIDE_TOP) {
+            top = (getHeight() - inputHeight) + ((inputHeight - height) / 2);
+        }
+        drawable.setBounds(start, top, start + width,
+                top + height);
+        drawable.draw(canvas);
+
+    }
+
     private int getBitmapDrawableWidth(Drawable drawable) {
+        if (null == drawable) {
+            return 0;
+        }
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable d = (BitmapDrawable) drawable;
             return d.getBitmap().getWidth();
@@ -324,6 +416,9 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     }
 
     private int getBitmapDrawableHeight(Drawable drawable) {
+        if (null == drawable) {
+            return 0;
+        }
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable d = (BitmapDrawable) drawable;
             int maxHeight = getHeight() - 2 * parser.getPadding();
@@ -444,8 +539,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (parser.getRightDrawableType() == RightDrawable.CLEAR_AND_ERROR
-                || parser.getRightDrawableType() == RightDrawable.ERROR_ONLY) {
+        if (parser.getRightDrawableType() != RightDrawable.NONE) {
             if (getText().toString().length() > 0 && event.getAction() == MotionEvent.ACTION_UP) {
                 if (parser.getClearDrawable().getBounds().contains((int) event.getX(), (int) event.getY()) && isFocused()) {
                     this.setText("");
