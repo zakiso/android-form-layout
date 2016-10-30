@@ -52,6 +52,8 @@ public class AttributeParser {
     public int titleToTitleDrawableSpace;
     public int titleToTitleTagDrawableSpace;
 
+    public int inputFieldMaxLines;
+
     public AttributeParser(Context context) {
         this.context = context;
     }
@@ -298,5 +300,13 @@ public class AttributeParser {
 
     public int getTitleToTitleTagDrawableSpace() {
         return titleToTitleTagDrawableSpace;
+    }
+
+    public int getInputFieldMaxLines() {
+        return inputFieldMaxLines;
+    }
+
+    public void setInputFieldMaxLines(int inputFieldMaxLines) {
+        this.inputFieldMaxLines = inputFieldMaxLines;
     }
 }

@@ -10,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.text.Layout;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -20,7 +21,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.github.lazydeer.formlayout.FormLayout;
-import com.github.lazydeer.formlayout.IsEmpty;
+import com.github.lazydeer.formlayout.FormUtils;
 import com.github.lazydeer.formlayout.R;
 
 import java.lang.reflect.Field;
@@ -43,6 +44,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     private boolean validateFailed;
     private String validateFailedMessage;
 
+    private ErrorDrawableClickListener errorDrawableClickListener;
     //只显示一行文字的高度
     private float oneLineHeight;
 
@@ -125,12 +127,13 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                 || parser.getTitleType() == TitleType.INNER_TOP) {
             height += parser.getPadding() + parser.getTitleSize()
                     + parser.getTitleToInputSpace();
+            setMeasuredDimension(getMeasuredWidth(), height);
         }
-        setMeasuredDimension(getMeasuredWidth(), height);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+        Log.d("ondraw_total:", getTotalPaddingTop() + "");
         setBackground(canvas);
         drawLeftDrawable(canvas);
         drawRightDrawable(canvas);
@@ -139,9 +142,12 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     }
 
     private void initView() {
+        //设置它的最大输入行数 默认为0就是不限制
+        if (parser.getInputFieldMaxLines() != 0) {
+            this.setMaxLines(parser.getInputFieldMaxLines());
+        }
         int textStart = parser.getPadding();
         int textEnd = parser.getPadding();
-
         if (parser.getEndDrawable() != null) {
             int endDrawableWidth = getBitmapDrawableWidth(parser.getEndDrawable());
             textEnd += endDrawableWidth;
@@ -187,15 +193,23 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                 top = getHeight() - inputHeight;
                 break;
         }
+        Log.d("background:", "top_" + top + ",start_" + start + ",right_" + getWidth() + ",bottom_" + getHeight());
+        Log.d("background:", "top_" + top + ",start_" + start + ",right_" + getWidth() + ",bottom_cal_" + getTextViewHeight());
         parser.getInputFieldBackground().setBounds(
-                new Rect(start, top, getWidth(), getHeight()));
+                new Rect(start, top, getWidth(), getTextViewHeight()));
         parser.getInputFieldBackground().draw(canvas);
+    }
 
+    private int getTextViewHeight() {
+        Layout layout = this.getLayout();
+        int desired = layout.getLineTop(this.getLineCount());
+        int padding = this.getCompoundPaddingTop() + this.getCompoundPaddingBottom();
+        return desired + padding;
     }
 
     //画左边的title 和他相关的图标
     private void drawTitle(Canvas canvas) {
-        if (IsEmpty.string(titleText)) {
+        if (FormUtils.emptyString(titleText)) {
             return;
         }
 
@@ -340,21 +354,20 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             int width = getBitmapDrawableWidth(parser.getEndDrawable());
             int height = getBitmapDrawableHeight(parser.getEndDrawable());
             int start = getWidth() - width - parser.getPadding();
-            int top = (getHeight() - height) / 2;
+            int top = (getTextViewHeight() - height) / 2;
             if (parser.getTitleType() == TitleType.INNER_TOP
                     || parser.getTitleType() == TitleType.OUTSIDE_TOP) {
-                top = (getHeight() - inputHeight) + ((inputHeight - height)) / 2;
+                top = (getTextViewHeight() - inputHeight) + ((inputHeight - height)) / 2;
             }
-            parser.getStartDrawable().setBounds(start, top, start + width,
+            parser.getEndDrawable().setBounds(start, top, start + width,
                     top + height);
-            parser.getStartDrawable().draw(canvas);
+            parser.getEndDrawable().draw(canvas);
         }
 
         switch (parser.getRightDrawableType()) {
-            case 0:
             case RightDrawable.CLEAR_AND_ERROR:
                 if ((isFocused() && getText().toString().length() > 0)
-                        || (!isFocused() && validateFailed)) {
+                        || (validateFailed && getText().toString().length() == 0)) {
 
                     Drawable drawable;
                     if (validateFailed) {
@@ -398,10 +411,11 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     parser.getRightDrawableToDrawableSpace() - width
                     - getBitmapDrawableWidth(parser.getEndDrawable());
         }
-        int top = (getHeight() - height) / 2;
+        //getHeight为当前textview 可见的高度，如果设置了maxLines还有一部分不可见的高度 需要通过getTextViewHeight获取
+        int top = (getHeight() - height) / 2 + (getTextViewHeight() - getHeight());
         if (parser.getTitleType() == TitleType.INNER_TOP
                 || parser.getTitleType() == TitleType.OUTSIDE_TOP) {
-            top = (getHeight() - inputHeight) + ((inputHeight - height) / 2);
+            top = (getTextViewHeight() - inputHeight) + ((inputHeight - height) / 2);
         }
         drawable.setBounds(start, top, start + width,
                 top + height);
@@ -465,6 +479,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
             if (f.getType().isAssignableFrom(Drawable.class) ||
@@ -487,6 +502,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                                 f.getName()).get(defaultValue));
                     }
                 } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
             if (f.getType().isAssignableFrom(boolean.class)) {
@@ -502,6 +518,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
                         }
                     }
                 } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -523,14 +540,15 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
         FieldValidateError error = null;
         //验证是否唯恐
         if (parser.isNotNull()) {
-            if (IsEmpty.string(getText().toString())) {
+            if (FormUtils.emptyString(getText().toString())) {
                 validateFailed = true;
                 validateFailedMessage = parser.getNotNullErrorMessage();
                 error = new FieldValidateError(this, validateFailedMessage,
                         FieldValidateError.ErrorType.NULL_ERROR);
             }
         }
-        if (parser.getValidateRegexString() != null && !validateFailed) {
+        if (parser.getValidateRegexString() != null) {
+            Log.d("regex string", parser.getValidateRegexString());
             Pattern pattern = Pattern.compile(parser.getValidateRegexString());
             Matcher isNum = pattern.matcher(getText().toString());
             if (isNum.matches()) {
@@ -558,6 +576,7 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             if (parser.getEndDrawable().getBounds().contains((int) event.getX(), (int) event.getY())
                     && this.endDrawableClickListener != null) {
                 endDrawableClickListener.onClick(this);
+                return true;
             }
         }
         if (parser.getRightDrawableType() != RightDrawable.NONE) {
@@ -569,9 +588,11 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
             if (validateFailed && event.getAction() == MotionEvent.ACTION_UP) {
                 if (parser.getWrongDrawable().getBounds().contains((int) event.getX(), (int) event.getY())) {
                     Toast.makeText(getContext(), validateFailedMessage, Toast.LENGTH_SHORT).show();
+                    if (errorDrawableClickListener != null) {
+                        errorDrawableClickListener.onClick(this);
+                    }
+                    return true;
                 }
-                super.onTouchEvent(event);
-                return true;
             }
         }
         return super.onTouchEvent(event);
@@ -641,5 +662,18 @@ public class InputField extends EditText implements View.OnFocusChangeListener {
     public void setValidateListener(ValidateListener validateListener) {
         this.validateListener = validateListener;
     }
+
+    public ErrorDrawableClickListener getErrorDrawableClickListener() {
+        return errorDrawableClickListener;
+    }
+
+    public void setErrorDrawableClickListener(ErrorDrawableClickListener errorDrawableClickListener) {
+        this.errorDrawableClickListener = errorDrawableClickListener;
+    }
+
+    public interface ErrorDrawableClickListener {
+        void onClick(InputField inputField);
+    }
 }
+
 

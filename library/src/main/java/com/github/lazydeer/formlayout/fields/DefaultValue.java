@@ -25,7 +25,7 @@ public class DefaultValue {
     //默认右边显示的图标
     public int rightDrawableType = InputField.RightDrawable.CLEAR_AND_ERROR;
     //title的宽度
-    public int titleWidth = 100;
+    public int titleWidth = 0;
     public int titleColor = Color.BLACK;
     public int titleSize = 20;
 
@@ -34,6 +34,9 @@ public class DefaultValue {
     public int rightDrawableToDrawableSpace = 5;
     public int titleToTitleDrawableSpace = 3;
     public int titleToTitleTagDrawableSpace = 2;
+
+    //默认输入行数不限制
+    public int inputFieldMaxLines = 0;
 
     //校验相关字段
     public boolean notNull = false;
